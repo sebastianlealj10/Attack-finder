@@ -70,39 +70,62 @@ set_proxy_Custom () {
   esac
 }
 
-#echo "Type the domain that you want to check, followed by [ENTER]:"
-#read domain
-#echo "Type the country which the attack is from [Country Code], followed by [ENTER]:"
-#read country
-#echo "Do you want to use proxy?, [Y/N] followed by [ENTER]:"
-#read ans1
-#if [[ $ans1 -eq Y ]]
-#  then
-#    echo "Do you want to use Oxylabs?, [Y/N] followed by [ENTER]:"
-#    read ans2
-#    if [[ $ans2 -eq Y ]]
-#      then
-#        sel_proxy="Oxylabs"
-#      else
-#        sel_proxy="Custom"
-#    fi
-#   else
-#    sel_proxy="None"
-#fi
-#if [ $ans1 != "Y" ] || [$ans1 != "N" ] [ $ans2 != "Y" ] || [$ans2 != "N" ]
-#  then
-#    exit
-#fi
-URL="https://gist.github.com"
-country="US"
-resp=$(curl $URL --write-out %{http_code} --progress-bar -L \
-                  --no-keepalive --insecure --output /dev/null --proxy http://customer-analyst-cc-"$country":CTAC%40cyxtera.com2018@pr.oxylabs.io:7777 )
-echo $resp
-#custom
-resp=$(curl $URL --write-out %{http_code} --progress-bar -L \
-                  --no-keepalive --insecure --output /dev/null --proxy socks4://146.252.240.145:59310)
+echo "Type the domain that you want to check, followed by [ENTER]:"
+read domain
+echo "Type the client that you want to check[BancoGalicia], followed by [ENTER]:"
+read client
 
-echo $resp
+if [ ! -f "$client.csv" ]
+  then
+    echo "................."
+    echo "Customer does not exist"
+    echo "................."
+    sleep 5
+    exit
+fi
+#./Patterns.sh $client $domain
+echo "Type the country which the attack is from [Country Code], followed by [ENTER]:"
+read country
+echo "Do you want to use proxy?, [Y/N] followed by [ENTER]:"
+read ans1
+if [ "$ans1" == "Y" ]
+  then
+    echo "Do you want to use Oxylabs?, [Y/N] followed by [ENTER]:"
+    read ans2
+    if [ "$ans2" == "Y" ]
+      then
+        sel_proxy="Oxylabs"
+      else
+        sel_proxy="Custom"
+    fi
+   else
+    sel_proxy="None"
+fi
+if [ $ans1 != "Y" || $ans2 != "N" ] || [ $ans1 != "N" || $ans2 != "Y" ] || [ $ans1 != "Y" || $ans2 != "Y" ]
+  then
+    exit
+fi
+#while read line
+#do
+#URL=`echo $line | cut -d, -f1`
+#echo $URL
+#done <folders.csv
+#URL="https://gist.github.com"
+#country="US"
+#resp=$(curl $URL --write-out %{http_code} --progress-bar -L \
+#                  --no-keepalive --insecure --output /dev/null --proxy http://customer-analyst-cc-"$country":CTAC%40cyxtera.com2018@pr.oxylabs.io:7777 )
+#echo $resp
+#custom
+#protocol="socks4"
+#ip="146.252.240"
+#port="59310"
+#resp=$(curl $URL --write-out %{http_code} --progress-bar -L \
+#                  --no-keepalive --insecure --output /dev/null --proxy "$protocol"://"$ip":"$port")
+
+#echo $resp
+
+#user-agent
+
 
 #set_proxy $COUNTRY $URL "newsite.html"
 #if [ "$?" -ne 0 ]
