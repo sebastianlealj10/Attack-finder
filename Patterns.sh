@@ -8,10 +8,6 @@
 
 #$read -p "Ingrese el dominio a analizar: "  dominio
 
-echo "HERE"$1
-echo "HERE"$2
-
-
 #------------------
 # Read and save the file information
 
