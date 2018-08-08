@@ -34,7 +34,12 @@ if [[ "$ans1" == "Y" || "$ans1" == "N" ]]
                 sel_proxy="Oxylabs"
               else
                 sel_proxy="Custom"
-
+                echo "Type the protocol [socks4], followed by [ENTER]:"
+                read protocol
+                echo "Type the ip [0.0.0.0],followed by [ENTER]:"
+                read ip
+                echo "Type the port [8080],followed by [ENTER]:"
+                read port
             fi
           else
             echo "error"
@@ -56,12 +61,13 @@ do
     then
 
       resp=$(curl $URL --write-out %{http_code} --progress-bar -L \
-                  --no-keepalive --insecure --output /dev/null --proxy http://customer-analyst-cc-"$country":CTAC%40cyxtera.com2018@pr.oxylabs.io:7777 )
+                  --no-keepalive --insecure --connect-timeout 5 --output /dev/null --proxy http://customer-analyst-cc-"$country":CTAC%40cyxtera.com2018@pr.oxylabs.io:7777 )
       echo $resp
+      echo $?
       if [ "$?" -ne 0 ]
         then
           resp=$(curl $URL --write-out %{http_code} --progress-bar -L \
-                      --no-keepalive --insecure --output /dev/null --proxy http://customer-analyst-cc-"$country":CTAC%40cyxtera.com2018@pr.oxylabs.io:7777 )
+                      --no-keepalive --insecure --connect-timeout 5 --output /dev/null --proxy http://customer-analyst-cc-"$country":CTAC%40cyxtera.com2018@pr.oxylabs.io:7777 )
       fi
       if [ "$?" -ne 0 ]
       then
@@ -71,15 +77,21 @@ do
   if [[ "$sel_proxy" == "None" ]]
     then
       resp=$(curl $URL --write-out %{http_code} --progress-bar -L \
-                  --no-keepalive --insecure --output /dev/null)
+                  --no-keepalive --insecure --connect-timeout 5 --output /dev/null)
   fi
   if [[ "$sel_proxy" == "Custom" ]]
     then
-      echo "................"
-      echo "this function is not available yet"
-      echo "................"
-      sleep 5
-      exit
+      resp=$(curl $URL --write-out %{http_code} --progress-bar -L \
+                  --no-keepalive --insecure --connect-timeout 5 --output /dev/null --proxy "$protocol"://"$ip":"$port")
+    if [ "$?" -ne 0 ]
+      then
+        resp=$(curl $URL --write-out %{http_code} --progress-bar -L \
+                --no-keepalive --insecure --connect-timeout 5 --output /dev/null --proxy "$protocol"://"$ip":"$port")
+    fi
+    if [ "$?" -ne 0 ]
+      then
+        echo $URL >> Proxyerror.csv
+    fi
   fi
 #curl $google.com --write-out %{http_code} --progress-bar -L --no-keepalive --insecure --output /dev/null
   first_resp="${resp:0:1}"
@@ -91,30 +103,5 @@ done <folders.csv
 end=`date +%s`
 runtime=$((end-start))
 runtimeM=$((runtime/60))
-echo "el tiempo de ejecución fue: " $runtimeM "minuts"
-#URL="https://gist.github.com"
-#country="US"
-#resp=$(curl $URL --write-out %{http_code} --progress-bar -L \
-#                  --no-keepalive --insecure --output /dev/null --proxy http://customer-analyst-cc-"$country":CTAC%40cyxtera.com2018@pr.oxylabs.io:7777 )
-#echo $resp
-#custom
-#protocol="socks4"
-#ip="146.252.240"
-#port="59310"
-#resp=$(curl $URL --write-out %{http_code} --progress-bar -L \
-#                  --no-keepalive --insecure --output /dev/null --proxy "$protocol"://"$ip":"$port")
-
-#echo $resp
-
-#user-agent
-
-
-#set_proxy $COUNTRY $URL "newsite.html"
-#if [ "$?" -ne 0 ]
-#  then
-#    set_proxy $COUNTRY $URL "newsite.html"
-#fi
-#if [ "$?" -ne 0 ]
-#  then
-#    cat HTMLS/$ID.html > "newsite.html"
-#fi
+echo "Runtime was: " $runtimeM "minutes"
+#curl $URL --write-out %{http_code} --progress-bar -L --no-keepalive --insecure --connect-timeout 10 --output /dev/null --proxy http://customer-analyst-cc-"$country":CTAC%40cyxtera.com2018@pr.oxylabs.io:7777
