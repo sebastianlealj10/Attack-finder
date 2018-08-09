@@ -1,10 +1,16 @@
 #!/bin/bash
 start=`date +%s`
+DATE=`date +%Y-%m-%d`
 rm  "folders.csv" > /dev/null 2>&1
 rm  "Posibleattack.csv" > /dev/null 2>&1
 rm  "Proxyerror.csv" > /dev/null 2>&1
 echo "Type the domain that you want to check, followed by [ENTER]:"
 read domain
+if [ ! -f "domainsrecords.csv" ]
+  then
+    echo "domain","Date" >> domainsrecords.csv
+fi
+echo $domain,$DATE >> domainsrecords.csv
 echo "Type the client that you want to check[BancoGalicia], followed by [ENTER]:"
 read client
 
@@ -72,6 +78,7 @@ do
       if [ "$?" -ne 0 ]
       then
         echo $URL >> Proxyerror.csv
+        continue
       fi
   fi
   if [[ "$sel_proxy" == "None" ]]
@@ -91,8 +98,10 @@ do
     if [ "$?" -ne 0 ]
       then
         echo $URL >> Proxyerror.csv
+        continue
     fi
   fi
+echo $res
 #curl $google.com --write-out %{http_code} --progress-bar -L --no-keepalive --insecure --output /dev/null
   first_resp="${resp:0:1}"
   if [ $first_resp == 2 ] || [ $first_resp == 3 ]
@@ -104,4 +113,4 @@ end=`date +%s`
 runtime=$((end-start))
 runtimeM=$((runtime/60))
 echo "Runtime was: " $runtimeM "minutes"
-#curl $URL --write-out %{http_code} --progress-bar -L --no-keepalive --insecure --connect-timeout 10 --output /dev/null --proxy http://customer-analyst-cc-"$country":CTAC%40cyxtera.com2018@pr.oxylabs.io:7777
+#resp=$(curl https://bancogaliciabsas.com/.online/.scripts/homebanking/baselogin.html --write-out %{http_code} --progress-bar -L --no-keepalive --insecure --connect-timeout 5 --output /dev/null --proxy socks4://200.85.111.205:1080)
