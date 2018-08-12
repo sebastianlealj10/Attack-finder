@@ -62,7 +62,8 @@ echo URL > Posibleattack.csv
 echo URL > Proxyerror.csv
 while read line
 do
-  URL=`echo $line | cut -d, -f1`
+  URL=$(echo $line | cut -d, -f1)
+  echo $URL
   if [[ "$sel_proxy" == "Oxylabs" ]]
     then
 
@@ -70,12 +71,12 @@ do
                   --no-keepalive --insecure --connect-timeout 5 --output /dev/null --proxy http://customer-analyst-cc-"$country":CTAC%40cyxtera.com2018@pr.oxylabs.io:7777 )
       echo $resp
       echo $?
-      if [ "$?" -ne 0 ]
+      if [ "$?" -ne 0 ] || [ "$resp" -eq 000 ]
         then
           resp=$(curl $URL --write-out %{http_code} --progress-bar -L \
                       --no-keepalive --insecure --connect-timeout 5 --output /dev/null --proxy http://customer-analyst-cc-"$country":CTAC%40cyxtera.com2018@pr.oxylabs.io:7777 )
       fi
-      if [ "$?" -ne 0 ]
+      if [ "$?" -ne 0 ] || [ "$resp" -eq 000 ]
       then
         echo $URL >> Proxyerror.csv
         continue
@@ -90,12 +91,12 @@ do
     then
       resp=$(curl $URL --write-out %{http_code} --progress-bar -L \
                   --no-keepalive --insecure --connect-timeout 5 --output /dev/null --proxy "$protocol"://"$ip":"$port")
-    if [ "$?" -ne 0 ]
+    if [ "$?" -ne 0 ] || [ "$resp" -eq 000 ]
       then
         resp=$(curl $URL --write-out %{http_code} --progress-bar -L \
                 --no-keepalive --insecure --connect-timeout 5 --output /dev/null --proxy "$protocol"://"$ip":"$port")
     fi
-    if [ "$?" -ne 0 ]
+    if [ "$?" -ne 0 ] || [ "$resp" -eq 000 ]
       then
         echo $URL >> Proxyerror.csv
         continue
