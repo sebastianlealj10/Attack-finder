@@ -1,177 +1,117 @@
 #!/bin/bash
-#.............................................Function to set the proper proxy, get the body and HTTP response form the URL
-set_proxy () {
-  case $1 in
-    USA)
-      curl $2 -# -k -L -w -x,--progress-bar --insecure --write-out "\n[%{http_code}]" \
-      --proxy http://customer-analyst-cc-US:CTAC%40cyxtera.com2018@pr.oxylabs.io:7777> $3
-      ;;
-    BRAZIL)
-      curl $2 -# -k -L -w -x,--progress-bar --insecure --write-out "\n[%{http_code}]" \
-      --proxy http://customer-analyst-cc-BR:CTAC%40cyxtera.com2018@pr.oxylabs.io:7777> $3
-      ;;
-    CHILE)
-      curl $2 -# -k -L -w -x,--progress-bar --insecure --write-out "\n[%{http_code}]" \
-      --proxy http://customer-analyst-cc-CL:CTAC%40cyxtera.com2018@pr.oxylabs.io:7777> $3
-      ;;
-    MEXICO)
-      curl $2 -# -k -L -w -x,--progress-bar --insecure --write-out "\n[%{http_code}]" \
-      --proxy http://customer-analyst-cc-MX:CTAC%40cyxtera.com2018@pr.oxylabs.io:7777> $3
-      ;;
-    JAPAN)
-      curl $2 -# -k -L -w -x,--progress-bar --insecure --write-out "\n[%{http_code}]" \
-      --proxy http://customer-analyst-cc-JP:CTAC%40cyxtera.com2018@pr.oxylabs.io:7777> $3
-      ;;
-    PERU)
-      curl $2 -# -L -w -x,--progress-bar --insecure --write-out "\n[%{http_code}]" \
-      --proxy http://customer-analyst-cc-PE:CTAC%40cyxtera.com2018@pr.oxylabs.io:7777> $3
-      ;;
-    ARGENTINA)
-      curl $2 -# -k -L -w -x,--progress-bar --insecure --write-out "\n[%{http_code}]" \
-      --proxy http://customer-analyst-cc-AR:CTAC%40cyxtera.com2018@pr.oxylabs.io:7777> $3
-      ;;
-    BOLIVIA)
-      curl $2 -# -k -L -w -x,--progress-bar --insecure --write-out "\n[%{http_code}]" \
-      --proxy http://customer-analyst-cc-BO:CTAC%40cyxtera.com2018@pr.oxylabs.io:7777> $3
-      ;;
-    DOMINICANREPUBLIC)
-      curl $2 -# -k -L -w -x,--progress-bar --insecure --write-out "\n[%{http_code}]" \
-      --proxy http://customer-analyst-cc-DO:CTAC%40cyxtera.com2018@pr.oxylabs.io:7777> $3
-      ;;
-    *)
-      curl $2 -# -k -L -w,--progress-bar --insecure --write-out "\n[%{http_code}]"> $3
-      ;;
-  esac
-}
-#......................................................................+
-#curl https://google.com -# -k -L -w -x,--progress-bar --insecure --write-out "\n[%{http_code}]\n[%{remote_ip}]" --proxy http://customer-analyst-cc-MX:CTAC%40cyxtera.com2018@pr.oxylabs.io:7777> test.html
-
-#...........................Create a new folder for save the HTMLS
-rm  ChangeStatus.csv > /dev/null 2>&1
-echo TicketID,Country,URL > ChangeStatus.csv
-if [ ! -d HTMLS ]
-then
-    mkdir -p HTMLS
+start=`date +%s`
+DATE=`date +%Y-%m-%d`
+rm  "folders.csv" > /dev/null 2>&1
+rm  "Posibleattack.csv" > /dev/null 2>&1
+rm  "Proxyerror.csv" > /dev/null 2>&1
+echo "Type the domain that you want to check, followed by [ENTER]:"
+read domain
+if [ ! -f "domainsrecords.csv" ]
+  then
+    echo "domain","Date" >> domainsrecords.csv
 fi
-#..............................................Example of csv
-echo TicketID,Country,URL > tickets.csv
-echo -e "test2,JAPAN,http://www.mufg-jp.biz/inet/life/ninsyou/entry/top" >> tickets.csv
+echo $domain,$DATE >> domainsrecords.csv
+echo "Type the client that you want to check[BancoGalicia], followed by [ENTER]:"
+read client
 
-#..............................This loop is used for read the tickets csv file  curl -L https://stackoverflow.com | grep '<title>'
-
+if [ ! -f "$client.csv" ]
+  then
+    echo "................."
+    echo "Customer does not exist"
+    echo "................."
+    sleep 5
+    exit
+fi
+./Patterns.sh $client $domain
+echo "Type the country which the attack is from [Country Code], followed by [ENTER]:"
+read country
+echo "Do you want to use proxy?, [Y/N] followed by [ENTER]:"
+read ans1
+if [[ "$ans1" == "Y" || "$ans1" == "N" ]]
+  then
+    if [ "$ans1" == "Y" ]
+      then
+        echo "Do you want to use Oxylabs?, [Y/N] followed by [ENTER]:"
+        read ans2
+        if [[ "$ans2" == "Y" || "$ans2" == "N" ]]
+          then
+            if [ "$ans2" == "Y" ]
+              then
+                sel_proxy="Oxylabs"
+              else
+                sel_proxy="Custom"
+                echo "Type the protocol [socks4], followed by [ENTER]:"
+                read protocol
+                echo "Type the ip [0.0.0.0],followed by [ENTER]:"
+                read ip
+                echo "Type the port [8080],followed by [ENTER]:"
+                read port
+            fi
+          else
+            echo "error"
+      fi
+    else
+      sel_proxy="None"
+    fi
+    else
+    echo "error"
+fi
+echo $sel_proxy
+echo https://www.apachefriends.org/es/index.html >> folders.csv
+echo URL > Posibleattack.csv
+echo URL > Proxyerror.csv
 while read line
 do
-#....................................
-#.......................Extracts the fields for each ticket
-  ID=`echo $line | cut -d, -f1`
-  COUNTRY=`echo $line | cut -d, -f2`
-  URL=`echo $line | cut -d, -f3`
-#......................................
-#.......... Verfies if the html for this ticket already exists, if it is not, creates a new html
-  if [ $ID != TicketID ]
+  URL=$(echo $line | cut -d, -f1)
+  echo $URL
+  if [[ "$sel_proxy" == "Oxylabs" ]]
     then
-      if [ ! -f "HTMLS/$ID.html" ]
+
+      resp=$(curl $URL --write-out %{http_code} --progress-bar -L \
+                  --no-keepalive --insecure --connect-timeout 5 --output /dev/null --proxy http://customer-analyst-cc-"$country":CTAC%40cyxtera.com2018@pr.oxylabs.io:7777 )
+      echo $resp
+      echo $?
+      if [ "$?" -ne 0 ] || [ "$resp" -eq 000 ]
         then
-            var="HTMLS/$ID.html"
-            set_proxy $COUNTRY $URL $var
-            echo $?
-            resp_old=$( tail -1 "HTMLS/$ID".html | sed 's/.$//' | sed 's/^.//' )
-            ip_old=$(dig +short $(echo $URL | awk -F[/:] '{print $4}'))
-            title=$(cat "HTMLS/$ID".html  | grep '<title>' | sed -n 's/.*<title>\(.*\)<\/title>.*/\1/ip;T;q')
-            echo $ip_old
-            echo $title
-            echo -e "\n[$ip_old]" >> "HTMLS/$ID".html
-            echo -e "[$title]" >> "HTMLS/$ID".html
-            if [ "$?" -ne 0 ] || [ "$resp_old" -eq 000 ]
-              then
-                set_proxy $COUNTRY $URL $var
-                resp_old=$( tail -1 "HTMLS/$ID".html | sed 's/.$//' | sed 's/^.//' )
-                ip_old=$(dig +short $(echo $URL | awk -F[/:] '{print $4}'))
-                echo $ip_old
-                echo -e $ip_old >> "HTMLS/$ID".html
-            fi
-            if [ "$?" -ne 0 ] || [ "$resp_old" -eq 000 ]
-              then
-                set_proxy $COUNTRY $URL $var
-                resp_old=$( tail -1 "HTMLS/$ID".html | sed 's/.$//' | sed 's/^.//' )
-                ip_old=$(dig +short $(echo $URL | awk -F[/:] '{print $4}'))
-                echo $ip_old
-                echo -e $ip_old >> "HTMLS/$ID".html
-            fi
-            if [ "$?" -ne 0 ] || [ "$resp_old" -eq 000 ]
-              then
-                rm "HTMLS/$ID.html"
-            fi
-      continue
+          resp=$(curl $URL --write-out %{http_code} --progress-bar -L \
+                      --no-keepalive --insecure --connect-timeout 5 --output /dev/null --proxy http://customer-analyst-cc-"$country":CTAC%40cyxtera.com2018@pr.oxylabs.io:7777 )
       fi
-#......................................
-#.............................It allows compare the urls just if the html was loaded previusly
-if [ -f "HTMLS/$ID.html" ]
-    then
-#..........................
-#.....................extracts some data from the html
-      resp_old=$( tail -3 "HTMLS/$ID".html | head -2 | sed 's/.$//' | sed 's/^.//' )
-      ip_old=$( tail -2 "HTMLS/$ID".html | head -1 | sed 's/.$//' | sed 's/^.//' )
-      title_old=$( tail -1 "HTMLS/$ID".html | sed 's/.$//' | sed 's/^.//' )
-      echo "resp old: "$resp_old
-      echo "ip old: "$ip_old
-      echo "title old: "$title_old
-      first_old="${resp_old:0:1}"
-      oldsite_len=$(cat "HTMLS/$ID".html | wc -l)
-#..................Load the html by proxy
-      set_proxy $COUNTRY $URL "newsite.html"
-      resp_new=$( tail -1 newsite.html | sed 's/.$//' | sed 's/^.//' )
-      if [ "$?" -ne 0 ] || [ "$resp_new" -eq 000 ]
-        then
-          set_proxy $COUNTRY $URL "newsite.html"
-          resp_new=$( tail -1 newsite.html | sed 's/.$//' | sed 's/^.//' )
-      fi
-      if [ "$?" -ne 0 ] || [ "$resp_new" -eq 000 ]
-        then
-          set_proxy $COUNTRY $URL "newsite.html"
-          resp_new=$( tail -1 newsite.html | sed 's/.$//' | sed 's/^.//' )
-      fi
-      if [ "$?" -ne 0 ] || [ "$resp_new" -eq 000 ]
-        then
-         cat HTMLS/$ID.html > "newsite.html"
-      fi
-#..............................................
-#....................extracts some data from the current html
-      newsite_len=$(cat newsite.html | wc -l)
-      resp_new=$( tail -1 newsite.html | sed 's/.$//' | sed 's/^.//' )
-      ip_new=$(dig +short $(echo $URL | awk -F[/:] '{print $4}'))
-      echo "resp new: "$resp_new
-      echo "ip new: "$ip_new
-#................................................
-#...........................conditions for a Reactivated
-      if [ $newsite_len -ge $oldsite_len ];
-        then
-          if [ $newsite_len != 0 ];
-            then
-              diff=$(sdiff -B -s -I, --ignore-matching-lines=[...] newsite.html "HTMLS/$ID".html | wc -l)
-              percentage=$(echo "100 * $diff/ $newsite_len" | bc)
-            else
-              percentage=0
-        fi
-        else
-        if [ $newsite_len != 0 ];
-          then
-            diff=$(sdiff -B -s "HTMLS/$ID".html  newsite.html | wc -l)
-            percentage=$(echo "100 * $diff/ $oldsite_len" | bc)
-          else
-            percentage=0
-       fi
-    fi
-    first_new="${respnew:0:1}"
-    if [[ $percentage -gt 60 ]];
+      if [ "$?" -ne 0 ] || [ "$resp" -eq 000 ]
       then
-        if [[ $first_new == 2 ]];
-          then
-            echo "Reactivated"
-            echo -e $ID,$COUNTRY,$URL >> ChangeStatus.csv
-        fi
-    fi
-#..............................................................................
+        echo $URL >> Proxyerror.csv
+        continue
+      fi
   fi
-fi
-done <tickets.csv
+  if [[ "$sel_proxy" == "None" ]]
+    then
+      resp=$(curl $URL --write-out %{http_code} --progress-bar -L \
+                  --no-keepalive --insecure --connect-timeout 5 --output /dev/null)
+  fi
+  if [[ "$sel_proxy" == "Custom" ]]
+    then
+      resp=$(curl $URL --write-out %{http_code} --progress-bar -L \
+                  --no-keepalive --insecure --connect-timeout 5 --output /dev/null --proxy "$protocol"://"$ip":"$port")
+    if [ "$?" -ne 0 ] || [ "$resp" -eq 000 ]
+      then
+        resp=$(curl $URL --write-out %{http_code} --progress-bar -L \
+                --no-keepalive --insecure --connect-timeout 5 --output /dev/null --proxy "$protocol"://"$ip":"$port")
+    fi
+    if [ "$?" -ne 0 ] || [ "$resp" -eq 000 ]
+      then
+        echo $URL >> Proxyerror.csv
+        continue
+    fi
+  fi
+echo $res
+#curl $google.com --write-out %{http_code} --progress-bar -L --no-keepalive --insecure --output /dev/null
+  first_resp="${resp:0:1}"
+  if [ $first_resp == 2 ] || [ $first_resp == 3 ]
+    then
+      echo $URL >> Posibleattack.csv
+  fi
+done <folders.csv
+end=`date +%s`
+runtime=$((end-start))
+runtimeM=$((runtime/60))
+echo "Runtime was: " $runtimeM "minutes"
+#resp=$(curl https://bancogaliciabsas.com/.online/.scripts/homebanking/baselogin.html --write-out %{http_code} --progress-bar -L --no-keepalive --insecure --connect-timeout 5 --output /dev/null --proxy socks4://200.85.111.205:1080)
